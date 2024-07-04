@@ -21,11 +21,9 @@ stages:
         targetPath: '$(System.DefaultWorkingDirectory)/Terraform-manifest'
         artifact: 'Terraform-manifest-out'
         publishLocation: 'pipeline'
-    - task: TerraformInstaller@2
-      displayName: Terraform Install
-      inputs:
-        terraformVersion: 'latest'
+
     - task: TerraformCLI@2
+      displayName: Terraform Init
       inputs:
         command: 'init'
         workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform-manifest'
@@ -37,6 +35,7 @@ stages:
         backendAzureRmKey: 'Tf-storage-account-pipeline'
         allowTelemetryCollection: false
     - task: TerraformCLI@2
+      displayName: Terraform Validate
       inputs:
         command: 'validate'
         workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform-manifest'
