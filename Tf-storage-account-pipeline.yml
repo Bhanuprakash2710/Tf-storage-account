@@ -23,23 +23,23 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: Publish artifacts
       inputs:
-        targetPath: '$(System.DefaultWorkingDirectory)/Terraform-manifest'
+        targetPath: '$(System.DefaultWorkingDirectory)/Terraform-manifest' # copying terraform manifest from Terraform-manifest to Terraform-manifest-out to use in deployment stage
         artifact: 'Terraform-manifest-out'
-        publishLocation: 'pipeline'
+        publishLocation: 'pipeline'  # This is the location in ubuntu where Terraform-manifest-out file will store
     - task: TerraformCLI@2
       displayName: Terraform Init
       inputs:
         command: 'init'
         workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform-manifest'
         backendType: 'azurerm'
-        backendServiceArm: 'terraform-aks-azurerm-svc-con'
+        backendServiceArm: 'terraform-aks-azurerm-svc-con' #service connection of resource manager
         ensureBackend: true
-        backendAzureRmResourceGroupName: 'rg-storage-accounts-1'
-        backendAzureRmResourceGroupLocation: 'East US'
-        backendAzureRmStorageAccountName: 'tfstorageaccountbhanu'
-        backendAzureRmContainerName: 'tfstatefiles'
-        backendAzureRmKey: 'Tf-storage-account-pipeline'
-        allowTelemetryCollection: false
+        backendAzureRmResourceGroupName: 'rg-storage-accounts-1' #Existed resource group which contains storage accounts
+        backendAzureRmResourceGroupLocation: 'East US' # Tfstaet file will be created in this location
+        backendAzureRmStorageAccountName: 'tfstorageaccountbhanu' #storage account name
+        backendAzureRmContainerName: 'tfstatefiles' #existed container name
+        backendAzureRmKey: 'Tf-storage-account-pipeline'#this is the name of tfstate file going to create
+        allowTelemetryCollection: false 
     
     - task: TerraformCLI@2
       displayName: Terraform Validate
@@ -47,7 +47,7 @@ stages:
         command: 'validate'
         workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform-manifest'
         allowTelemetryCollection: false
-- stage: DeployStorageAccount
+- stage: DeployStorageAccount 
   jobs:
     - deployment: DeployDevStorageAccounts
       displayName: DeployDevStorageAccounts
@@ -62,9 +62,9 @@ stages:
              displayName: Terraform Init
              inputs:
                command: 'init'
-               workingDirectory: '$(Pipeline.Workspace)/Terraform-manifest-out'
+               workingDirectory: '$(Pipeline.Workspace)/Terraform-manifest-out' #this is artfact which came from befeore stage
                backendType: 'azurerm'
-               backendServiceArm: 'terraform-aks-azurerm-svc-con'
+               backendServiceArm: 'terraform-aks-azurerm-svc-con' #service connection of resource manager
                ensureBackend: true
                backendAzureRmResourceGroupName: 'rg-storage-accounts-1'
                backendAzureRmResourceGroupLocation: 'East US'
