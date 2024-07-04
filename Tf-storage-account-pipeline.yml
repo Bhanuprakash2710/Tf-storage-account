@@ -21,19 +21,20 @@ stages:
         targetPath: '$(System.DefaultWorkingDirectory)/Terraform-manifest'
         artifact: 'Terraform-manifest-out'
         publishLocation: 'pipeline'
-
     - task: TerraformCLI@2
-      displayName: Terraform Init
       inputs:
         command: 'init'
         workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform-manifest'
         backendType: 'azurerm'
         backendServiceArm: 'terraform-aks-azurerm-svc-con'
+        ensureBackend: true
         backendAzureRmResourceGroupName: 'rg-storage-accounts-1'
+        backendAzureRmResourceGroupLocation: 'East US'
         backendAzureRmStorageAccountName: 'tfstorageaccountbhanu'
         backendAzureRmContainerName: 'tfstatefiles'
         backendAzureRmKey: 'Tf-storage-account-pipeline'
         allowTelemetryCollection: false
+    
     - task: TerraformCLI@2
       displayName: Terraform Validate
       inputs:
