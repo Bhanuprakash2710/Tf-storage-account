@@ -8,6 +8,11 @@ trigger:
 
 pool:
   vmImage: ubuntu-latest
+variables:
+- name: DEV_ENVIRONMENT
+  value: dev
+- name: QA_ENVIRONMENT
+  value: qa 
 
 stages:
 - stage: TerraformValidate
@@ -22,6 +27,7 @@ stages:
         artifact: 'Terraform-manifest-out'
         publishLocation: 'pipeline'
     - task: TerraformCLI@2
+      displayName: Terraform Init
       inputs:
         command: 'init'
         workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform-manifest'
@@ -41,3 +47,42 @@ stages:
         command: 'validate'
         workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform-manifest'
         allowTelemetryCollection: false
+- stage: DeployStorageAccount
+  jobs:
+    - deployment: DeployDevStorageAccounts
+      displayName: DeployDevStorageAccounts
+      pool:
+        vmImage: ubuntu-latest
+      environment: dev
+      strategy:
+       runOnce:
+         deploy:
+           steps:
+           - task: TerraformCLI@2
+             displayName: Terraform Init
+             inputs:
+               command: 'init'
+               workingDirectory: '$(Pipeline.Workspace)/Terraform-manifest-out'
+               backendType: 'azurerm'
+               backendServiceArm: 'terraform-aks-azurerm-svc-con'
+               ensureBackend: true
+               backendAzureRmResourceGroupName: 'rg-storage-accounts-1'
+               backendAzureRmResourceGroupLocation: 'East US'
+               backendAzureRmStorageAccountName: 'tfstorageaccountbhanu'
+               backendAzureRmContainerName: 'tfstatefiles'
+               backendAzureRmKey: 'Tf-storage-account-pipeline'
+               allowTelemetryCollection: false
+           - task: TerraformCLI@2
+             displayName: Terraform plan
+             inputs:
+               command: 'plan'
+               workingDirectory: '$(Pipeline.Workspace)/Terraform-manifest-out'
+               environmentServiceName: 'terraform-aks-azurerm-svc-con'
+               allowTelemetryCollection: false
+           - task: TerraformCLI@2
+             inputs:
+               command: 'apply'
+               workingDirectory: '$(Pipeline.Workspace)/Terraform-manifest-out'
+               environmentServiceName: 'terraform-aks-azurerm-svc-con'
+               allowTelemetryCollection: false
+               
